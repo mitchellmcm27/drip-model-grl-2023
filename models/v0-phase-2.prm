@@ -1,0 +1,18 @@
+set End time = 60.e6
+
+# Phase 2 modulates convergence rate 
+# to approximate the propagation of strain off of the plateau and into the foreland (i.e., wedge dynamics)
+
+subsection Termination criteria
+   set Checkpoint on termination = true
+end
+
+subsection Boundary velocity model
+set Tangential velocity boundary indicators = bottom
+set Prescribed velocity boundary indicators = left:function, right:function
+  subsection Function
+    set Variable names      = x,y
+    set Function constants  = cm=0.01, year=1, h=100.e3, L=800.e3, D=400.e3, u=0.1, a=0.0, dy=10.e3, densityratio=0.8793 # u = convergence of one side (double it for total convergence rate)
+    set Function expression = if(y>D-h, if(x<200.e3, (2*u)*cm/year, (-0*u)*cm/year), if(x<200.e3,(-min(a/dy*(D-h-y),a)-u*h/(D-h)*densityratio)*cm/year, (-min(a/dy*(D-h-y),a)+u*h/(D-h)*densityratio)*cm/year)); 0
+  end
+end

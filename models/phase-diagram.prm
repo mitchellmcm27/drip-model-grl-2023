@@ -1,0 +1,127 @@
+# Modified from the ASPECT repository
+
+# This prm file is used to generate a phase diagram.
+# This could be useful for densities, viscosities in a material model.
+
+set Dimension                              = 2
+set CFL number                             = 1.0
+set End time                               = 0
+set Adiabatic surface temperature          = 1673.0
+set Output directory                       = output-phase-diagram
+set Use years in output instead of seconds = true
+set Nonlinear solver scheme = no Advection, no Stokes
+
+# Model geometry
+subsection Geometry model
+  set Model name = box
+  subsection Box
+    set X repetitions = 100
+    set Y repetitions = 100
+    set X extent      = 800e3
+    set Y extent      = 800e3
+  end
+end
+
+# Mesh refinement specifications
+subsection Mesh refinement
+  set Initial adaptive refinement        = 0
+  set Initial global refinement          = 0
+  set Time steps between mesh refinement = 0
+end
+
+
+subsection Gravity model
+  set Model name = vertical
+  subsection Vertical
+    set Magnitude = 10.0
+  end
+end
+
+
+# Temperature boundary and initial conditions
+subsection Boundary temperature model
+  set Fixed temperature boundary indicators   = left, right
+  set List of model names = box
+  subsection Box
+    set Left temperature   = 273
+    set Right temperature  = 1273
+  end
+end
+
+subsection Initial temperature model
+  set Model name = function
+  subsection Function
+    set Coordinate system = cartesian
+    set Variable names = x, y
+    set Function constants = XMAX=800e3, Tl=273.0, Tr=1273
+    set Function expression = Tl * (x - XMAX)/(-XMAX) + Tr * x / XMAX
+  end
+end
+
+# Initial composition model
+subsection Initial composition model
+    set List of model names = function
+    subsection Function
+        set Coordinate system = cartesian
+        set Function expression = 1.0
+    end
+end
+
+# Comment the following 3 sections for steinberg model and pyrolitic lookup table
+# Fields of composition
+subsection Compositional fields
+    set Number of fields = 1
+    set Names of fields = lower_crust_eclogite
+    set Compositional field methods = field
+end
+
+
+
+# Value for material model
+# Set Densities to a constant value and thermal expansivity to 0.0 to have a constant pressure gradient
+# Set Values of Heat capacities to values of reference densities of pyrolitic phases
+subsection Material model
+  set Model name = visco plastic
+  
+  # How to average materials within cells
+  # Because we use the discontinuous discretization for composition, only average viscosity here
+  # Keep sharp contrasts in density
+  set Material averaging = harmonic average only viscosity
+  subsection Visco Plastic
+
+
+    set Maximum viscosity = 1.e24
+
+    set Densities = 625.
+
+    set Reference temperature = 273.0
+    set Thermal expansivities =  0.
+
+    # Eclogite phase transition from Bousequet et al., 1997, Tectonophysics
+
+    set Define transition by depth instead of pressure = false
+    set Phase transition Clapeyron slopes =  2.275e6 # Pa/K
+    set Phase transition pressures =  1.00e9 # Pa
+    set Phase transition pressure widths =  0.175e9 # Pa
+    set Phase transition temperatures =  773.15 # K, = 500 C
+
+    # Thermal parameters
+    set Heat capacities = background: 3300.0, lower_crust_eclogite:3000.|3370.
+                
+
+  end
+end
+
+subsection Boundary velocity model
+  set Tangential velocity boundary indicators = top, bottom, left, right
+end
+
+subsection Postprocess
+  set List of postprocessors = visualization
+
+  subsection Visualization
+    set Output format                 = vtu
+    set List of output variables      = density, thermal expansivity, specific heat
+    set Time between graphical output = 0e6
+  end
+end

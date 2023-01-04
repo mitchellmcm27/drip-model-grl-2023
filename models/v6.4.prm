@@ -1,0 +1,29 @@
+# v6.4
+# Sets the width of the eclogite prone layer to 0 km
+
+subsection Initial composition model
+  set Model name = function
+  subsection Function
+    set Variable names = x,y,t
+
+    # Initial faulting (shear bands)
+
+    # Assume angle of 35 degrees (slope = tan(35)~0.7) and vertical thickness of 4 km
+    # Assume plastic strain of 1.5 (maximum for softening)
+    # Spacing of faults approximately corresponds to major ranges on Puna (Quebrada Honda - Calalaste - Laguna Blanca)
+
+    set Function constants = H=400.e3, sd=397.e3, UC=375.e3, LC=350.e3, LM=300.e3, w_ec=150.0e3, m=350.0e3, w_plateau=650.e3,\
+                             dip=0.70020753821, dz=4.e3, f0=-60.e3, f1=-35.e3, f2=35.e3, f3=-150.e3, f4=-165.e3,f5=150.e3
+
+    set Function expression = 0;\
+                              if(y >= UC && ((y>=H-dip*(x-(m+f0))-dz/2 && y <= H-dip*(x-(m+f0))+dz/2) | (y>=H-dip*(x-(m+f1))-dz/2 && y <= H-dip*(x-(m+f1))+dz/2) | (y>=H+dip*(x-(m+f2))-dz/2 && y <= H+dip*(x-(m+f2))+dz/2) | (y>=H+dip*(x-(m+f3))-dz/2 && y <= H+dip*(x-(m+f3))+dz/2) | (y>=H+dip*(x-(m+f4))-dz/2 && y <= H+dip*(x-(m+f4))+dz/2) | (y>=H-dip*(x-(m+f5))-dz/2 && y <= H-dip*(x-(m+f5))+dz/2)), 1.5, y>=UC && abs(x-m) <= w_plateau/2 ? rand()*1.0 + 0.5 : 0); \
+                              if(y >= sd && abs(x-m) < w_plateau/2, 1, 0);\
+                              if(y < sd && y >= UC && abs(x-m) < w_plateau/2, 1, 0);\
+                              if(y < UC && y >= LC && abs(x-m) < w_plateau/2, 1, 0);\
+                              if(y < LC && y >= LM && abs(x-m) < w_plateau/2, 1, 0);\
+                              0;\
+                              if(y >= UC && abs(x-m) >= w_plateau/2, 1, 0);\
+                              if(y < UC && y >= LC && abs(x-m) >= w_plateau/2, 1, 0);\
+                              if(y < LC && y >= LM && abs(x-m) >= w_plateau/2, 1, 0);
+  end
+end

@@ -1,0 +1,8 @@
+# v3.3
+# Sets the upper-crust viscosity prefactor coefficient to 100
+
+subsection Material model
+  subsection Visco Plastic Pda
+  set Constant viscosity prefactors = 0.1, 1.0, 1.0, 1.0, 100., 1.0, 1.0, 1.0, 1000.0, 10.0, 10.0 
+  end
+end

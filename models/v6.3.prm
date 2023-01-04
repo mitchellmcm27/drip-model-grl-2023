@@ -1,0 +1,9 @@
+# v6.3
+# Sets the width of the eclogite prone layer to 650 km
+
+subsection Initial composition model
+  subsection Function
+    set Function constants = H=400.e3, sd=397.e3, UC=375.e3, LC=350.e3, LM=300.e3, w_ec=650.0e3, m=350.0e3, w_plateau=650.e3,\
+                             dip=0.70020753821, dz=4.e3, f0=-60.e3, f1=-35.e3, f2=35.e3, f3=-150.e3, f4=-165.e3,f5=150.e3
+    end
+end

@@ -1,0 +1,19 @@
+# v5.1
+# Sets the upper crustal heat production to 1.0 mW/m3
+
+subsection Heating model
+  subsection Compositional heating
+    set Compositional heating values = 0., 0., 0., 0.9e-6, 1.0e-6, 0.5e-6, 0.02e-6, 0.5e-6, 1.0e-6, 0.5e-6, 0.02e-6
+    end
+end
+
+subsection Initial temperature model
+  set List of model names = function
+  subsection Function
+    set Variable names = x,z
+    set Function constants = h=400.e3, UC=25.e3, LC=50.e3, ML=100.e3, k=3.0,\
+                             A0=1.0e-6, A1=0.5e-6, A2=0.02e-6,\
+                             T0=273.15, T1=748.88, T2=1068.36, T3=1603.15,\
+                             dTdz = 0.4
+  end
+end

@@ -1,0 +1,19 @@
+# v2.2
+# Eliminates both the broad plastic damage zone
+# Retains shear bands (faults)
+
+subsection Initial composition model
+  subsection Function
+    set Function expression = 0;\
+                              if(y >= UC && ((y>=H-dip*(x-(m+f0))-dz/2 && y <= H-dip*(x-(m+f0))+dz/2) | (y>=H-dip*(x-(m+f1))-dz/2 && y <= H-dip*(x-(m+f1))+dz/2) | (y>=H+dip*(x-(m+f2))-dz/2 && y <= H+dip*(x-(m+f2))+dz/2) | (y>=H+dip*(x-(m+f3))-dz/2 && y <= H+dip*(x-(m+f3))+dz/2) | (y>=H+dip*(x-(m+f4))-dz/2 && y <= H+dip*(x-(m+f4))+dz/2) | (y>=H-dip*(x-(m+f5))-dz/2 && y <= H-dip*(x-(m+f5))+dz/2)), 1.5, y>=UC && abs(x-m) <= w_plateau/2 ? 0 : 0); \
+                              if(y >= sd && abs(x-m) < w_plateau/2, 1, 0);\
+                              if(y < sd && y >= UC && abs(x-m) < w_plateau/2, 1, 0);\
+                              if(y < UC && y >= LC && abs(x-m) >= w_ec, 1, y < UC && y >= LC ? max(0,min((abs(x-m)-w_ec/2)/(w_ec/2), 1)) : 0);\
+                              if(y < LC && y >= LM && abs(x-m) < w_plateau/2, 1, 0);\
+                              if(y < UC && y >= LC && abs(x-m) < w_ec/2, 1, y < UC && y >= LC ? max(1-(abs(x-m)-w_ec/2)/(w_ec/2),0) : 0);\
+                              if(y >= UC && abs(x-m) >= w_plateau/2, 1, 0);\
+                              if(y < UC && y >= LC && abs(x-m) >= w_plateau/2, 1, 0);\
+                              if(y < LC && y >= LM && abs(x-m) >= w_plateau/2, 1, 0);
+  end
+end
+

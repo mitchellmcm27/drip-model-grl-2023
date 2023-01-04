@@ -1,0 +1,11 @@
+# v8.2
+# Purpose: Change phase 2 total convergence rate to 1 mm/yr
+
+subsection Boundary velocity model
+set Tangential velocity boundary indicators = bottom
+set Prescribed velocity boundary indicators = left:function, right:function
+  subsection Function
+    set Variable names      = x,y
+    set Function constants  = cm=0.01, year=1, h=100.e3, L=800.e3, D=400.e3, u=0.05, a=2.0, dy=10.e3, densityratio=0.8793 # u = convergence of one side (double it for total convergence rate)
+  end
+end

@@ -1,0 +1,344 @@
+# Global parameters
+
+set Dimension                                       = 2
+set Start time                                      = 0
+set End time                                        = 10e6
+set Use years in output instead of seconds          = true
+set Nonlinear solver scheme                         = single Advection, iterated defect correction Stokes
+set Nonlinear solver tolerance                      = 1e-4 # default 1e-6
+set Max nonlinear iterations                        = 100 # default 10, initial time step requires more
+set CFL number                                      = 0.2 # 0.5
+set Maximum time step                               = 20.e3
+set Maximum first time step                         = 1e2
+set Maximum relative increase in time step          = 50
+set Output directory                                = output-v0
+set Pressure normalization                          = no # free surface requires no pressure normalization
+set Resume computation                              = auto # set to 'true' or 'auto' to resume from checkpoint
+
+set End time = 38.e6
+
+
+subsection Solver parameters
+ subsection Stokes solver parameters
+  set Number of cheap Stokes solver steps = 0
+  set Stokes solver type = block GMG
+ #  set Linear solver tolerance = 1e-7
+ end
+  subsection Newton solver parameters
+    set Maximum linear Stokes solver tolerance   = 1e-2
+    set Use Eisenstat Walker method for Picard iterations = true
+  end
+end
+
+# Governing equations
+
+subsection Formulation
+  set Formulation          = custom
+  set Mass conservation    = ask material model
+  set Temperature equation = real density
+end
+
+subsection Checkpointing
+  set Steps between checkpoint = 100
+end
+
+subsection Time stepping
+  set Minimum time step size = 0
+  set List of model names = convection time step, repeat on cutback
+  subsection Repeat on cutback
+    set Cut back amount = 0.1 # multiply previous dt by this amount, default 0.5
+    set Relative repeat threshold = 0.2 # detect a cutback when time step reduces by this factor, default 0.2
+  end
+
+end
+
+subsection Geometry model
+  set Model name = box
+  subsection Box
+    set X repetitions = 100
+    set Y repetitions = 50
+    set X extent  = 800.e3
+    set Y extent  = 400.e3
+  end
+end
+
+subsection Mesh refinement
+  set Initial adaptive refinement        = 3
+  set Initial global refinement          = 0
+  set Refinement fraction                = 1.0
+  set Coarsening fraction                = 0.0
+  set Strategy                           = minimum refinement function
+  set Normalize individual refinement criteria = true
+  set Time steps between mesh refinement = 0
+
+  # Refine the mesh based on depth
+  # Three levels roughly correspond to crust, mantle lithosphere, and asthenosphere, plus some leeway for thickening
+
+  subsection Minimum refinement function
+    set Coordinate system = cartesian
+    set Function constants = H=400.e3, UC=25.e3, LC=50.e3, LM=100.e3
+    set Function expression = if(y > H-UC-5.e3, 3, if(y >= H-LC-10.e3, 2, if(y >= H-LM-20.e3, 1, 0)))
+  end
+end
+
+subsection Gravity model
+  set Model name = vertical
+  subsection Vertical
+    set Magnitude = 9.81
+  end
+end
+
+subsection Mesh deformation
+  set Mesh deformation boundary indicators = top: free surface & diffusion
+  subsection Diffusion
+    set Hillslope transport coefficient = 1e-8 # default 1e-6
+  end
+  subsection Free surface
+    set Free surface stabilization theta = 0.5
+  end
+end
+
+subsection Compositional fields
+  set Number of fields = 10
+  set Names of fields = noninitial_plastic_strain, plastic_strain,\
+                        sediment, upper_crust, lower_crust, lithospheric_mantle, lower_crust_eclogite,\
+                        UC_strong, LC_strong, LM_strong                       
+end
+
+# Q2P1 Element
+subsection Discretization
+  set Composition polynomial degree           = 2 # default 2
+  set Stokes velocity polynomial degree       = 2 # default 2
+  set Temperature polynomial degree           = 2 # default 2
+  set Use locally conservative discretization = false # default false
+
+  # Discontinuous Galerikin method: He et al., EPSL, 2017
+  set Use discontinuous composition discretization = true
+  subsection Stabilization parameters
+    set Use limiter for discontinuous composition solution = true
+    set Global composition maximum   =  100, 100, 1, 1, 1, 1, 1, 1, 1, 1
+    set Global composition minimum   =    0,   0, 0, 0, 0, 0, 0, 0, 0, 0
+  end
+end
+
+# Phase 1 approximates the Paleogene when the Puna Plateau was actively deforming
+# Phase 2 approximates the Middle Miocene to present, when deformation moved east into the EC-foreland
+# McFarland et al. (2017; JGR Solid Earth) show GPS velocities in a transect across the Andes
+# The modern Puna Plateau accounts for about 2 mm/yr of shortening
+# The modern EC-broken foreland accounts for ~6 mm/yr of shortening
+# The remaining is distributed b/w the WC, precordillera, and cratonic region
+
+# Phase 1 assumes 6 mm/yr shortening within the Puna during the Paleogene - this is analagoues to the modern Eastern Cordillera-broken foreland zone
+# After 38 Myr, shortening is reduced to 2 mm/yr, roughly matching the modern GPS record of shortening across the Puna.
+
+subsection Termination criteria
+   set Checkpoint on termination = true
+end
+
+subsection Boundary velocity model
+set Tangential velocity boundary indicators = bottom
+set Prescribed velocity boundary indicators = left:function, right:function
+  subsection Function
+    set Variable names      = x,y
+    set Function constants  = cm=0.01, year=1, h=100.e3, L=800.e3, D=400.e3, u=0.3, a=0.0, dy=10.e3, densityratio=0.8793 # u = convergence of one side (double it for total convergence rate)
+    set Function expression = if(y>D-h, if(x<200.e3, (2*u)*cm/year, (-0*u)*cm/year), if(x<200.e3,(-min(a/dy*(D-h-y),a)-u*h/(D-h)*densityratio)*cm/year, (-min(a/dy*(D-h-y),a)+u*h/(D-h)*densityratio)*cm/year)); 0
+  end
+end
+
+
+subsection Initial composition model
+  set Model name = function
+  subsection Function
+    set Variable names = x,y,t
+
+    # Initial faulting (shear bands)
+    # Assume angle of 35 degrees (slope = tan(35)~0.7) and vertical thickness of 4 km
+    # Assume plastic strain of 1.5 (maximum for softening)
+    # Spacing of faults approximately corresponds to major ranges on Puna (Quebrada Honda - Calalaste - Laguna Blanca)
+
+    set Function constants = H=400.e3, sd=397.e3, UC=375.e3, LC=350.e3, LM=300.e3, w_ec=150.0e3, m=350.0e3, w_plateau=650.e3,\
+                             dip=0.70020753821, dz=4.e3, f0=-60.e3, f1=-35.e3, f2=35.e3, f3=-150.e3, f4=-165.e3,f5=150.e3
+
+    set Function expression = 0;\
+                              if(y >= UC && ((y>=H-dip*(x-(m+f0))-dz/2 && y <= H-dip*(x-(m+f0))+dz/2) | (y>=H-dip*(x-(m+f1))-dz/2 && y <= H-dip*(x-(m+f1))+dz/2) | (y>=H+dip*(x-(m+f2))-dz/2 && y <= H+dip*(x-(m+f2))+dz/2) | (y>=H+dip*(x-(m+f3))-dz/2 && y <= H+dip*(x-(m+f3))+dz/2) | (y>=H+dip*(x-(m+f4))-dz/2 && y <= H+dip*(x-(m+f4))+dz/2) | (y>=H-dip*(x-(m+f5))-dz/2 && y <= H-dip*(x-(m+f5))+dz/2)), 1.5, y>=UC && abs(x-m) <= w_plateau/2 ? rand()*1.0 + 0.5 : 0); \
+                              if(y >= sd && abs(x-m) < w_plateau/2, 1, 0);\
+                              if(y < sd && y >= UC && abs(x-m) < w_plateau/2, 1, 0);\
+                              if(y < UC && y >= LC && abs(x-m) >= w_ec && abs(x-m) < w_plateau/2, 1, y < UC && y >= LC ? max(0,min((abs(x-m)-w_ec/2)/(w_ec/2), 1)) : 0);\
+                              if(y < LC && y >= LM && abs(x-m) < w_plateau/2, 1, 0);\
+                              if(y < UC && y >= LC && abs(x-m) < w_ec/2, 1, y < UC && y >= LC ? max(1-(abs(x-m)-w_ec/2)/(w_ec/2),0) : 0);\
+                              if(y >= UC && abs(x-m) >= w_plateau/2, 1, 0);\
+                              if(y < UC && y >= LC && abs(x-m) >= w_plateau/2, 1, 0);\
+                              if(y < LC && y >= LM && abs(x-m) >= w_plateau/2, 1, 0);
+  end
+end
+
+# Solve temperatures at interfaces based on heat flux
+# Adiabatic temperature gradient of 0.4 deg/km is assumed (Wang et al. 2021)
+# see Katsura et al, 2010, Adiabatic temperature profile in the mantle, Physics of the Earth and Planetary Interiors
+
+subsection Initial temperature model
+  set List of model names = function
+  subsection Function
+    set Variable names = x,z
+    set Function constants = h=400.e3, UC=25.e3, LC=50.e3, ML=100.e3, k=3.0,\
+                             A0=1.5e-6, A1=0.5e-6, A2=0.02e-6,\
+                             T0=273.15, T1=787.94, T2=1094.40, T3=1603.15,\
+                             dTdz = 0.4
+
+    set Function expression = if((h-z)<=UC, \
+                                  -0.5*A0/k*pow(h-z,2.)+(0.5*A0*UC/k + (T1-T0)/UC)*(h-z)+T0, \
+                                  if((h-z)>UC && (h-z)<=LC, \
+                                  -0.5*A1/k*pow(h-z-UC,2.)+(0.5*A1*(LC-UC)/k + (T2-T1)/(LC-UC))*(h-z-UC)+T1, \
+                                      if((h-z)>LC && (h-z)<=ML, \
+                                          (T3-T2)/(ML-LC)*(h-z-(UC)-(LC-UC)) + T2, \
+                                              T3 + (h-z-ML)*(dTdz/1.e3) ) ) );
+  end
+end
+
+subsection Material model
+  set Model name = visco plastic
+
+  # Because we use the discontinuous discretization for composition, only average viscosity here
+  # Keep sharp contrasts in density
+  set Material averaging = harmonic average only viscosity
+
+
+  subsection Visco Plastic
+
+    set Reference temperature = 273.15 
+    set Minimum strain rate = 1.e-20
+    set Reference strain rate = 1.e-15
+    set Minimum viscosity = 1.e18
+    set Maximum viscosity = 1.e26
+
+    set Densities = background:3300.,\
+                    noninitial_plastic_strain: 3300.,\
+                    plastic_strain:3300.,\
+                    sediment:2450.,\
+                    upper_crust:2700.,\
+                    lower_crust:3000.,\
+                    lithospheric_mantle:3300.,\
+                    lower_crust_eclogite:3000.|3370.,\
+                    UC_strong: 2700.,\
+                    LC_strong: 3000.,\
+                    LM_strong: 3300.
+
+    set Reference temperature = 273.0
+
+    set Thermal expansivities =  2.0e-5
+
+    # Eclogite phase transition from Bousequet et al. (1997), Tectonophysics
+
+    set Define transition by depth instead of pressure = false
+    set Phase transition Clapeyron slopes = lower_crust_eclogite: 2.275e6 # K/Pa
+    set Phase transition pressures = lower_crust_eclogite: 1.00e9 # Pa
+
+    # Phase transitions are calculated over a pressure range
+
+    set Phase transition pressure widths = lower_crust_eclogite: 0.175e9 # Pa
+    set Phase transition temperatures = lower_crust_eclogite: 773.15 # K, = 500 C
+
+    # Viscosity calculation
+
+    set Viscosity averaging scheme = harmonic
+    set Viscous flow law = composite
+
+    # Thermal parameters
+
+    set Define thermal conductivities = true
+    set Thermal conductivities        = 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0
+    set Heat capacities               = 1250., 1250., 1250., 750., 750., 750., 1250., 750., 750., 750., 1250.
+
+    # Rheological parameters
+    # For choices of crustal rheology, see Ibarra et al. 2019 for Puna
+
+    # Lithologies                                 # Wet olivine              <placeholder>                       <placeholder>              Wet quartzite      Dry W'ly granite      Felsic granulite      Dry olivine                   Felsic granulte --> Cpx-enite (J&K)     Dry W'ly granite    Felsic granulite    Dry olivine
+    set Constant viscosity prefactors             = 0.1,                     1.0,                                1.0,                       1.0,               1.0,                  1.0,                  1.0,                          1.0,                                    10.0,               10.0,               10.0                                    
+    set Prefactors for dislocation creep          = background:5.33e-19, noninitial_plastic_strain:5.33e-19, plastic_strain:5.33e-19,   sediment:8.57e-28, upper_crust:3.98e-28, lower_crust:9.55e-21, lithospheric_mantle:6.52e-16, lower_crust_eclogite:9.55e-21|2.33e-15, UC_strong:3.98e-28, LC_strong:9.55e-21, LM_strong:6.52e-16,  
+    set Stress exponents for dislocation creep    = background:3.5,      noninitial_plastic_strain:3.5,      plastic_strain:3.5,        sediment:4.0,      upper_crust:3.2,      lower_crust:3.1,      lithospheric_mantle:3.5,      lower_crust_eclogite:3.1|3.3,           UC_strong:3.2,      LC_strong:3.1,      LM_strong:3.5,       
+    set Activation energies for dislocation creep = background:400.e3,   noninitial_plastic_strain:400.e3,   plastic_strain:400.e3,     sediment:223.e3,   upper_crust:123.e3,   lower_crust:243.e3,   lithospheric_mantle:530.e3,   lower_crust_eclogite:243.e3|490.e3,     UC_strong:123.e3,   LC_strong:243.e3,   LM_strong:530.e3,         
+    set Activation volumes for dislocation creep  = background:11.e-6,   noninitial_plastic_strain:11.e-6,   plastic_strain:11.e-6,     sediment:0.,       upper_crust:0.,       lower_crust:0.,       lithospheric_mantle:18.e-6,   lower_crust_eclogite:0.|0.,             UC_strong:0.,       LC_strong:0.,       LM_strong:18.e-6,   
+    set Prefactors for diffusion creep            = background:1.50e-18, noninitial_plastic_strain:1.50e-18, plastic_strain:1.50e-18,   sediment:1.0e-50,  upper_crust:1.0e-50,  lower_crust:1.0e-50,  lithospheric_mantle:2.37e-15, lower_crust_eclogite:1.0e-50|2.37e-15,  UC_strong:1.0e-50,  LC_strong:1.0e-50,  LM_strong:2.37e-15,                           
+    set Grain size exponents for diffusion creep  = background:1.0,      noninitial_plastic_strain:1.0,      plastic_strain:1.0,        sediment:0.,       upper_crust:0.,       lower_crust:0.,       lithospheric_mantle:1.0,      lower_crust_eclogite:0.|1.0,            UC_strong:0.,       LC_strong:0.,       LM_strong:1.0,                  
+    set Activation energies for diffusion creep   = background:335.e3,   noninitial_plastic_strain:335.e3,   plastic_strain:335.e3,     sediment:0.,       upper_crust:0.,       lower_crust:0.,       lithospheric_mantle:375.e3,   lower_crust_eclogite:0.|375.e3,         UC_strong:0.,       LC_strong:0.,       LM_strong:375.e3,         
+    set Activation volumes for diffusion creep    = background:4.e-6,    noninitial_plastic_strain:4.e-6,    plastic_strain:4.e-6,      sediment:0.,       upper_crust:0.,       lower_crust:0.,       lithospheric_mantle:10.e-6,   lower_crust_eclogite:0.|10.e-6,         UC_strong:0.,       LC_strong:0.,       LM_strong:10.e-6,            
+    set Cohesions                                 = background:0.e6,     noninitial_plastic_strain:0.e6,     plastic_strain:0.e6,       sediment:2.e6,     upper_crust:2.e6,     lower_crust:2.e6,     lithospheric_mantle:0.e6,     lower_crust_eclogite:2.e6|0.e6,         UC_strong:2.e6,     LC_strong:2.e6,     LM_strong:0.e6,                   
+    set Angles of internal friction               = background:15.0,     noninitial_plastic_strain:15.0,     plastic_strain:15.0,       sediment:15.0,     upper_crust:15.0,     lower_crust:15.0,     lithospheric_mantle:15.0,     lower_crust_eclogite:15.0|15.0,         UC_strong:15.0,     LC_strong:15.0,     LM_strong:15.0,                  
+    set Grain size = 5.e-3
+
+    # Drucker-Prager plasticity
+
+    set Strain weakening mechanism = plastic weakening with plastic strain only                                                
+    set Start plasticity strain weakening intervals  = 0.5
+    set End plasticity strain weakening intervals    = 1.5
+    set Cohesion strain weakening factors            = 1.0
+    set Friction strain weakening factors            = 0.13
+  end
+end
+
+subsection Boundary composition model
+  set Fixed composition boundary indicators = left, right, top
+  set List of model names = initial composition
+  subsection Initial composition
+    set Maximal composition = 1
+    set Minimal composition = 0
+  end
+end
+
+# Temperature conditions
+
+subsection Boundary temperature model
+  set Fixed temperature boundary indicators = bottom, top
+  set List of model names = box
+  subsection Box
+    set Bottom temperature = 1723.15
+    set Top temperature    =  273.15
+  end
+end
+
+subsection Heating model
+  set List of model names = compositional heating, adiabatic heating, shear heating, latent heat
+  subsection Compositional heating
+                                                               #bg  <>  <>  sed     uc      lc      ml       lc-ec   ucs     lcs     lms
+    set Use compositional field for heat production averaging = 1,  0,  0,  1,      1,      1,      1,       1,      1,      1,      1
+    set Compositional heating values                          = 0., 0., 0., 0.9e-6, 1.5e-6, 0.5e-6, 0.02e-6, 0.5e-6, 1.5e-6, 0.5e-6, 0.02e-6
+  end
+end
+
+# Postprocessing and visualization
+
+subsection Postprocess  
+  set List of postprocessors = visualization, velocity statistics, basic statistics, topography, maximum depth of field, heat flux densities #, particles
+
+  subsection Visualization
+    set List of output variables = density, viscosity, strain rate, shear stress, heat flux map, named additional outputs
+    set Time steps between graphical output = 30
+    set Interpolate output = true
+    set Write higher order output = true
+    subsection Heat flux map
+      set Output point wise heat flux = false
+    end
+  end
+
+  # Topography is output at constant timesteps
+
+  subsection Topography
+    set Output to file = true
+    set Time between text output = 50.e3
+  end
+
+  # Only relevant if "particles" is included in list of postprocessors
+
+  subsection Particles
+    set Number of particles = 2005
+    set List of particle properties = initial position, pT path
+    set Time between data output = 100.e3
+    set Data output format = vtu
+    set Particle generator name = ascii file
+    subsection Generator
+      subsection Ascii file
+        set Data directory = data/
+      end
+    end
+  end
+end

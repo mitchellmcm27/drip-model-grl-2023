@@ -1,0 +1,19 @@
+set Max nonlinear iterations = 30 # default 10, initial time step requires more
+set Nonlinear solver tolerance  = 1e-4 # default 1e-6
+set Maximum time step = 20.e3
+set CFL number = 0.1
+
+subsection Geometry model
+  set Model name = box
+  # We set up a grid with 4x4 km spacing
+  subsection Box
+    set X repetitions = 50
+    set Y repetitions = 30
+    set X extent  = 800.e3
+    set Y extent  = 400.e3
+  end
+end
+
+subsection Mesh refinement
+  set Run postprocessors on initial refinement = true
+end
