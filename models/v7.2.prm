@@ -2,7 +2,7 @@
 # Changes the lower-crustal rheology to dry Maryland Diabase
 
 subsection Material model
-  subsection Visco Plastic Pda
+  subsection Visco Plastic
   set Constant viscosity prefactors = 0.1, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 10.0, 10.0, 10.0 
   set Prefactors for dislocation creep = background:5.33e-19, noninitial_plastic_strain:5.33e-19, plastic_strain:5.33e-19, sediment:8.57e-28, upper_crust:3.98e-28, lower_crust:5.78172e-27, lithospheric_mantle:6.52e-16, lower_crust_eclogite:5.78172e-27|2.33e-15, UC_strong:3.98e-28, LC_strong:5.78172e-27, LM_strong:6.52e-16, 
   set Stress exponents for dislocation creep = background:3.5, noninitial_plastic_strain:3.5, plastic_strain:3.5, sediment:4.0, upper_crust:3.2, lower_crust:4.7, lithospheric_mantle:3.5, lower_crust_eclogite:4.7|3.3, UC_strong:3.2, LC_strong:3.1, LM_strong:4.7, 

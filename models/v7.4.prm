@@ -15,7 +15,7 @@
 
 
 subsection Material model
-  subsection Visco Plastic Pda
+  subsection Visco Plastic
     set Densities = background:3300.,\
                   noninitial_plastic_strain: 3300.,\
                   plastic_strain:3300.,\

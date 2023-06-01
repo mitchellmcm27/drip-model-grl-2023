@@ -2,7 +2,7 @@
 # Sets asthenosphere viscosity prefactor coefficient to 1.0
 
 subsection Material model
-  subsection Visco Plastic Pda
+  subsection Visco Plastic
   set Constant viscosity prefactors = 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 10.0, 10.0, 10.0 
   end
 end

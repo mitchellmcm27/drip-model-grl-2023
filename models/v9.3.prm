@@ -2,7 +2,7 @@
 # Changes the crustal cohesion to 20 Mpa
 
 subsection Material model  
-  subsection Visco Plastic Pda
+  subsection Visco Plastic
     set Cohesions = background:0.e6, noninitial_plastic_strain:0.e6, plastic_strain:0.e6, sediment:2.e6, upper_crust:20.e6, lower_crust:2.e6, lithospheric_mantle:0.e6, lower_crust_eclogite:2.e6|0.e6, UC_strong:2.e6, LC_strong:2.e6, LM_strong:0.e6                  
   end
 end
