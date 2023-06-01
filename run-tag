@@ -29,7 +29,7 @@ echo $1 $2 $3
     fi
 } > input-$1.prm
 
-mpirun $2 input-$1.prm
+mpirun -np 20 $2 input-$1.prm
 wait
 
 {
@@ -55,5 +55,5 @@ wait
     fi
 } > input-$1.prm
 
-mpirun $2 input-$1.prm
+mpirun -np 20 $2 input-$1.prm
 exit 0
