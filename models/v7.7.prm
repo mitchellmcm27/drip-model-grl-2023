@@ -1,0 +1,10 @@
+# v7.5
+# Increases the intact friction angle from 15 to 20 degrees
+# Increases the weakened friction angle from 2 to 10 degrees
+
+subsection Material model
+  subsection Visco Plastic
+    set Angles of internal friction = background:20.0,     noninitial_plastic_strain:20.0,     plastic_strain:20.0,       sediment:20.0,     upper_crust:20.0,     lower_crust:20.0,     lithospheric_mantle:20.0,     lower_crust_eclogite:20.0|20.0,         UC_strong:20.0,     LC_strong:20.0,     LM_strong:20.0,                  
+    set Friction strain weakening factors = 0.5
+  end
+end
