@@ -2,7 +2,7 @@
 #SBATCH --nodes=3
 #SBATCH --ntasks-per-node=40
 #SBATCH --time=18:00:00
-#SBATCH --job-name=aspect_extensional_drip
+#SBATCH --job-name=drip-model-grl-2023
 #SBATCH --output=output_%j.txt
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=mitchellmcm27@gmail.com
@@ -28,4 +28,4 @@ fi
 
 echo tag 
 
-./run-tag $tag aspect
+./run-tag $tag $HOME/aspect/build/aspect
