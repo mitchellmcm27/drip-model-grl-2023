@@ -16,15 +16,15 @@ mpirun -np 10 /home/dealii/aspect/aspect-release models/v0-phase-2.prm
 
 The `run-tag` script is provided for running variant models. 
 
-Basic usage is: `./run-tag.sh <model variant tag> <path to ASPECT> <low-res flag?>`
+Basic usage is: `./run-tag <model variant tag> <path to ASPECT> <low-res flag?>`
 
 As an example, model `v2.1` can be run as follows:
 
-`./run-tag.sh v2.1 /home/dealii/aspect/aspect-release`
+`./run-tag v2.1 /home/dealii/aspect/aspect-release`
 
 This will run both phases of the model. The debug build of ASPECT can be used by passing it as the path. For running on personal machines with few cores, a `low-res.prm` parameter file is provided, which reduces the spatial resolution of the model. This can be utilized by passing the `-l` flag, as follows:
 
-`./run-tag.sh v2.1 /home/dealii/aspect/aspect-release -l`
+`./run-tag v2.1 /home/dealii/aspect/aspect-release -l`
 
 This will automatically merge the `low-res.prm` file in with whatever model variant is passed as a tag.
 
@@ -32,6 +32,8 @@ This will automatically merge the `low-res.prm` file in with whatever model vari
 The `run-all` script simply loops through all the model variant tags `v0...v9.3` and passes them to `run-tag`.
 
 The file `generate-particcle-data.sh` generates a text file with particle coordinates located throughout the crust, but particles were not used in the published models.
+
+Note that it is necessary to modify the file permissions for each script to enable them to be executed, e.g., `chmod +x ./run-tag`. If using Docker, this should be done on the host machine (or inside of WSL in Windows) before building the Docker container.
 
 ## Docker
 
@@ -41,9 +43,11 @@ The `Dockerfile` that was originally used to build the models is provided. This 
 
 All output files are stored in the model's corresponding `output-*\` subdirectories, e.g., `output-v2.1\` or `output-low-res-v2.1\`
 
+The ParaView state file used to create the visualizations for the paper is provided (`drip.pvsm`). To use it, launch ParaView and choose `File > Load State...` and navigate to the `drip.pvsm` file, select it, and click OK. Unfortunately, ParaView only supports absolute paths to locate the `solution.pvd` file. To work around this, select `Choose file names` from the drop-down box, and browse to the output folder you wish to visualize, e.g., `output-v2.1`, and select the `solution.pvd` file within it. After selecting OK, the solution file and several data filters should be displayed in the pipeline browser.
+
 ## Running on SciNet/Niagara
 
-The Slurm script used to run the models on SciNet/Niagara cluster is provided as `slurm-run-tag.sh`. This script takes the model variant tags from the Slurm task array, allowing the user to choose which model variants to run on the cluster. For example, to run models `v2.1`, `v2.2`, and `v2.3`, one can pass `--array=21,22,23` to Slurm. The script defaults to `v0` if no array jobs are specified.
+The Slurm script used to run the models on SciNet/Niagara cluster is provided as `slurm-run-tag`. This script takes the model variant tags from the Slurm task array, allowing the user to choose which model variants to run on the cluster. For example, to run models `v2.1`, `v2.2`, and `v2.3`, one can pass `--array=21,22,23` to Slurm. The script defaults to `v0` if no array jobs are specified.
 
 
 ## Reporting bugs

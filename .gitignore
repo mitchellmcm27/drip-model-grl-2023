@@ -2,7 +2,7 @@ output-*
 output/
 plugin/aspect
 #*.so
-*.pvsm
+#*.pvsm
 
 # Created by https://www.gitignore.io/api/cmake
 # Edit at https://www.gitignore.io/?templates=cmake

@@ -28,4 +28,4 @@ fi
 
 echo tag 
 
-./run-tag.sh $tag aspect
+./run-tag $tag aspect
