@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/585288527.svg)](https://zenodo.org/badge/latestdoi/585288527)
+
 ## Introduction
 
 This repository accompanies the McMillan et al. (2023) paper submitted to Geophysical Research Letters (https://doi.org/10.1002/2023GL103996) and mainly consists of deal.II paramter files for the ASPECT geodynamic modelling software. The source code for all of the models discussed in the journal article are contained in this repository.
