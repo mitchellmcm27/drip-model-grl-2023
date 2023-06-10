@@ -21,7 +21,7 @@ tag=v0
 if [[ $SLURM_ARRAY_TASK_ID ]]
 then
   id=$SLURM_ARRAY_TASK_ID
-  tag=v${id:0:1}.${id:1:1}
+  tag=v${id%?}.${id: -1}
 else
   tag=v0
 fi
