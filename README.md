@@ -28,11 +28,11 @@ This will run both phases of the model. The debug build of ASPECT can be used by
 
 `./run-tag v2.1 /home/dealii/aspect/aspect-release -l`
 
-This will automatically merge the `low-res.prm` file in with whatever model variant is passed as a tag. 
+This will automatically merge the `low-res.prm` file in with whatever model variant is passed as a tag. Similarly, a high resolution version is provided with `high-res.prm` through the `-h` tag, which doubles the spatial resolution.
 
 Note that the `run-tag` script was originally written to be used by the SLURM scheduler, which does not support the `-np` argument to `mpirun`. Therefore, the scripts will only run on 1 CPU process by default. To utilize more processes, edit `run-tag` manually by changing both instances of `mpirun ...` to e.g., `mpirun -np 20 ...` to use 20 cores.
 
-The `run-all` script simply loops through all the model variant tags `v0...v9.3` and passes them to `run-tag`.
+The `run-all` script simply loops through all the model variant tags `v0...v10.3` and passes them to `run-tag`.
 
 The file `generate-particcle-data.sh` generates a text file with particle coordinates located throughout the crust, but particles were not used in the published models.
 
