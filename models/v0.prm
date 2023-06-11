@@ -86,7 +86,7 @@ end
 subsection Mesh deformation
   set Mesh deformation boundary indicators = top: free surface & diffusion
   subsection Diffusion
-    set Hillslope transport coefficient = 1e-8 # default 1e-6
+    set Hillslope transport coefficient = 1e-10 # default 1e-6
   end
   subsection Free surface
     set Free surface stabilization theta = 0.5
