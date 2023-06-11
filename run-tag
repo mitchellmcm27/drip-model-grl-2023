@@ -1,9 +1,12 @@
 #!/bin/bash
 lowres=false
-
+hires=false
 if [ "$3" == "-l" ]
 then lowres=true
+elif [ "$3" == "-h" ]
+then hires=true
 fi
+
 
 echo $1 $2 $3
 
@@ -24,6 +27,10 @@ echo $1 $2 $3
     then
         echo "include models/low-res.prm"
         echo "set Output directory = output-low-res-$1"
+    elif [ "$hires" = true ]
+    then
+        echo "include models/high-res.prm"
+        echo "set Output directory = output-high-res-$1"
     else
         echo "set Output directory = output-$1"
     fi
@@ -50,6 +57,10 @@ wait
     then
         echo "include models/low-res.prm"
         echo "set Output directory = output-low-res-$1"
+    elif [ "$hires" = true ]
+    then
+        echo "include models/high-res.prm"
+        echo "set Output directory = output-high-res-$1"
     else
         echo "set Output directory = output-$1"
     fi

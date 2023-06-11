@@ -58,7 +58,7 @@ subsection Geometry model
 end
 
 subsection Mesh refinement
-  set Initial adaptive refinement        = 3
+  set Initial adaptive refinement        = 2
   set Initial global refinement          = 0
   set Refinement fraction                = 1.0
   set Coarsening fraction                = 0.0

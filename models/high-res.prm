@@ -1,0 +1,20 @@
+# Runs a high-res version of the models for visualization purposes
+
+# Adds an additional refinement pass (doubles spatial resolution)
+
+subsection Mesh refinement
+  set Initial adaptive refinement        = 3
+end
+
+# Increases hillslope diffusion because it seems that higher resolution topography
+# is more prone to the small instabilities
+
+subsection Mesh deformation
+  set Mesh deformation boundary indicators = top: free surface & diffusion
+  subsection Diffusion
+    set Hillslope transport coefficient = 1e-8 # v0 = 1e-10
+  end
+  subsection Free surface
+    set Free surface stabilization theta = 0.5
+  end
+end
