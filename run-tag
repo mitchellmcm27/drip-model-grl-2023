@@ -13,12 +13,12 @@ echo $1 $2 $3
 {
     echo "include models/v0.prm"
 
-    if [ -f "models/$1.prm" ]
+    if [ -f "models/$1.prm" ] && [ "$1" != "v0" ]
     then 
         echo "include models/$1.prm"
     fi
 
-    if [ -f "models/$1-phase-1.prm" ]
+    if [ -f "models/$1-phase-1.prm" ] && [ "$1" != "v0" ]
     then 
         echo "include models/$1-phase-1.prm"
     fi
@@ -43,12 +43,12 @@ wait
     echo "include models/v0.prm"
     echo "include models/v0-phase-2.prm"
 
-    if [ -f "models/$1.prm" ]
+    if [ -f "models/$1.prm" ] && [ "$1" != "v0" ]
     then 
         echo "include models/$1.prm"
     fi
 
-    if [ -f "models/$1-phase-2.prm" ]
+    if [ -f "models/$1-phase-2.prm" ] && [ "$1" != "v0" ]
     then 
         echo "include models/$1-phase-2.prm"
     fi
